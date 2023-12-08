@@ -74,12 +74,11 @@ def _round_order_quantity(ins, quantity) -> int:
     if ins.type == "CS" and ins.board_type == "KSH":
         # KSH can buy(sell) 201, 202 shares
         return 0 if abs(quantity) < KSH_MIN_AMOUNT else int(quantity)
-    else:
-        round_lot = ins.round_lot
-        try:
-            return int(Decimal(quantity) / Decimal(round_lot)) * round_lot
-        except ValueError:
-            raise
+    round_lot = ins.round_lot
+    try:
+        return int(Decimal(quantity) / Decimal(round_lot)) * round_lot
+    except ValueError:
+        raise
 
 
 def _get_order_style_price(order_book_id, style):
@@ -144,9 +143,9 @@ def _order_value(account, position, ins, cash_amount, style):
             return
 
     amount = int(Decimal(cash_amount) / Decimal(price))
-    round_lot = int(ins.round_lot)
     if cash_amount > 0:
         amount = _round_order_quantity(ins, amount)
+        round_lot = int(ins.round_lot)
         while amount > 0:
             expected_transaction_cost = env.get_order_transaction_cost(Order.__from_create__(
                 ins.order_book_id, amount, SIDE.BUY, LimitOrder(price), POSITION_EFFECT.OPEN
@@ -216,8 +215,9 @@ def stock_order_target_percent(id_or_ins, percent, price_or_style=None, price=No
 
 @order.register(INST_TYPE_IN_STOCK_ACCOUNT)
 def stock_order(order_book_id, quantity, price_or_style=None, price=None, style=None):
-    result_order = stock_order_shares(order_book_id, quantity, price, style, price_or_style)
-    if result_order:
+    if result_order := stock_order_shares(
+        order_book_id, quantity, price, style, price_or_style
+    ):
         return [result_order]
     return []
 
@@ -228,8 +228,9 @@ def stock_order_to(order_book_id, quantity, price_or_style=None, price=None, sty
     open_style, close_style = calc_open_close_style(price, style, price_or_style)
     quantity = quantity - position.quantity
     _style = open_style if quantity > 0 else close_style
-    result_order = stock_order_shares(order_book_id, quantity, price, _style, price_or_style)
-    if result_order:
+    if result_order := stock_order_shares(
+        order_book_id, quantity, price, _style, price_or_style
+    ):
         return [result_order]
     return []
 
@@ -405,7 +406,7 @@ def order_target_portfolio(
             order.set_frozen_price(last_price)
         order_list.append(order)
 
-    return list(env.submit_order(o) for o in chain(close_orders, open_orders))
+    return [env.submit_order(o) for o in chain(close_orders, open_orders)]
 
 
 @export_as_api
@@ -640,11 +641,7 @@ def sector(code):
         #INIT INFO
         #['002045.XSHE', '603099.XSHG', '002486.XSHE', '002536.XSHE', '300100.XSHE', '600633.XSHG', '002291.XSHE', ..., '600233.XSHG']
     """
-    if isinstance(code, SectorCodeItem):
-        code = code.name
-    else:
-        code = to_sector_name(code)
-
+    code = code.name if isinstance(code, SectorCodeItem) else to_sector_name(code)
     cs_instruments = Environment.get_instance().data_proxy.all_instruments((INSTRUMENT_TYPE.CS,))
     return [i.order_book_id for i in cs_instruments if i.sector_code == code]
 

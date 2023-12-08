@@ -63,7 +63,7 @@ def handle_bar(context, bar_dict):
         # 如果价差低于预先计算得到的下限,则为建仓信号,'买入'价差合约
         if spread <= down_limit and not context.down_cross_down_limit:
             # 可以通过logger打印日志
-            logger.info('spread: {}, mean: {}, down_limit: {}'.format(spread, mean, down_limit))
+            logger.info(f'spread: {spread}, mean: {mean}, down_limit: {down_limit}')
             logger.info('创建买入价差中...')
 
             # 获取当前剩余的应建仓的数量
@@ -82,7 +82,7 @@ def handle_bar(context, bar_dict):
 
         # 如果价差向上回归移动平均线,则为平仓信号
         if spread >= mean and context.down_cross_down_limit:
-            logger.info('spread: {}, mean: {}, down_limit: {}'.format(spread, mean, down_limit))
+            logger.info(f'spread: {spread}, mean: {mean}, down_limit: {down_limit}')
             logger.info('对买入价差仓位进行平仓操作中...')
 
             # 由于存在成交不超过下一bar成交量25%的限制,所以可能要通过多次发单成交才能够成功建仓
@@ -98,7 +98,7 @@ def handle_bar(context, bar_dict):
 
         # 如果价差高于预先计算得到的上限,则为建仓信号,'卖出'价差合约
         if spread >= up_limit and not context.up_cross_up_limit:
-            logger.info('spread: {}, mean: {}, up_limit: {}'.format(spread, mean, up_limit))
+            logger.info(f'spread: {spread}, mean: {mean}, up_limit: {up_limit}')
             logger.info('创建卖出价差中...')
             qty_a = 1 - short_pos_a.quantity
             qty_b = context.ratio - long_pos_b.quantity
@@ -112,7 +112,7 @@ def handle_bar(context, bar_dict):
 
         # 如果价差向下回归移动平均线,则为平仓信号
         if spread < mean and context.up_cross_up_limit:
-            logger.info('spread: {}, mean: {}, up_limit: {}'.format(spread, mean, up_limit))
+            logger.info(f'spread: {spread}, mean: {mean}, up_limit: {up_limit}')
             logger.info('对卖出价差仓位进行平仓操作中...')
             qty_a = short_pos_a.quantity
             qty_b = long_pos_b.quantity

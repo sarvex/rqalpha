@@ -52,7 +52,9 @@ class AccountMod(AbstractMod):
 
         futures_settlement_price_types = ["settlement", "close"]
         if mod_config.futures_settlement_price_type not in futures_settlement_price_types:
-            raise ValueError("sys_accounts futures_settlement_price_type in {}".format(futures_settlement_price_types))
+            raise ValueError(
+                f"sys_accounts futures_settlement_price_type in {futures_settlement_price_types}"
+            )
 
         if DEFAULT_ACCOUNT_TYPE.FUTURE in env.config.base.accounts:
             # 注入期货API

@@ -240,9 +240,9 @@ def update_universe(id_or_symbols):
     """
     if isinstance(id_or_symbols, (six.string_types, Instrument)):
         id_or_symbols = [id_or_symbols]
-    order_book_ids = set(
+    order_book_ids = {
         assure_order_book_id(order_book_id) for order_book_id in id_or_symbols
-    )
+    }
     if order_book_ids != Environment.get_instance().get_universe():
         Environment.get_instance().update_universe(order_book_ids)
 
@@ -373,9 +373,7 @@ def get_yield_curve(date=None, tenor=None):
     else:
         date = pd.Timestamp(date)
         if date > yesterday:
-            raise RQInvalidArgument(
-                "get_yield_curve: {} >= now({})".format(date, yesterday)
-            )
+            raise RQInvalidArgument(f"get_yield_curve: {date} >= now({yesterday})")
 
     return env.data_proxy.get_yield_curve(start_date=date, end_date=date, tenor=tenor)
 
@@ -867,10 +865,9 @@ def subscribe_event(event_type, handler):
 @export_as_api
 def symbol(order_book_id, sep=", "):
     if isinstance(order_book_id, six.string_types):
-        return "{}[{}]".format(order_book_id, Environment.get_instance().get_instrument(order_book_id).symbol)
+        return f"{order_book_id}[{Environment.get_instance().get_instrument(order_book_id).symbol}]"
     else:
-        s = sep.join(symbol(item) for item in order_book_id)
-        return s
+        return sep.join(symbol(item) for item in order_book_id)
 
 
 @export_as_api

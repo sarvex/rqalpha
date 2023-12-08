@@ -289,7 +289,7 @@ class GenerateDayBarTask(DayBarTask):
 
 class UpdateDayBarTask(DayBarTask):
     def h5_has_valid_fields(self, h5, wanted_fields):
-        obid_gen = (k for k in h5.keys())
+        obid_gen = iter(h5.keys())
         wanted_fields = set(wanted_fields)
         wanted_fields.add('datetime')
         try:
@@ -313,10 +313,11 @@ class UpdateDayBarTask(DayBarTask):
             try:
                 h5 = h5py.File(path, 'a')
             except OSError:
-                raise OSError("File {} update failed, if it is using, please update later, "
-                              "or you can delete then update again".format(path))
+                raise OSError(
+                    f"File {path} update failed, if it is using, please update later, or you can delete then update again"
+                )
             try:
-                is_futures = "futures" == os.path.basename(path).split(".")[0]
+                is_futures = os.path.basename(path).split(".")[0] == "futures"
                 for order_book_id in self._order_book_ids:
                     # 特殊处理前复权合约，需要全量更新
                     is_pre = is_futures and "888" in order_book_id
@@ -324,8 +325,9 @@ class UpdateDayBarTask(DayBarTask):
                         try:
                             last_date = int(h5[order_book_id]['datetime'][-1] // 1000000)
                         except OSError:
-                            raise OSError("File {} update failed, if it is using, please update later, "
-                                          "or you can delete then update again".format(path))
+                            raise OSError(
+                                f"File {path} update failed, if it is using, please update later, or you can delete then update again"
+                            )
                         except ValueError:
                             h5.pop(order_book_id)
                             start_date = START_DATE
@@ -364,11 +366,7 @@ def init_rqdatac_with_warnings_catch():
 
 
 def update_bundle(path, create, enable_compression=False, concurrency=1):
-    if create:
-        _DayBarTask = GenerateDayBarTask
-    else:
-        _DayBarTask = UpdateDayBarTask
-
+    _DayBarTask = GenerateDayBarTask if create else UpdateDayBarTask
     kwargs = {}
     if enable_compression:
         kwargs['compression'] = 9

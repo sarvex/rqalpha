@@ -89,9 +89,7 @@ class Account(metaclass=AccountMeta):
             for direction, position in positions.items():
                 if position.quantity != 0:
                     positions_repr.setdefault(order_book_id, {})[direction.value] = position.quantity
-        return "Account(cash={}, total_value={}, positions={})".format(
-            self.cash, self.total_value, positions_repr
-        )
+        return f"Account(cash={self.cash}, total_value={self.total_value}, positions={positions_repr})"
 
     def register_event(self):
         event_bus = self._env.event_bus
@@ -383,10 +381,9 @@ class Account(metaclass=AccountMeta):
             ).apply_trade(trade) + self._get_or_create_pos(
                 order_book_id, POSITION_DIRECTION.SHORT
             ).apply_trade(trade)
-            self._total_cash += delta_cash
         else:
             delta_cash = self._get_or_create_pos(order_book_id, trade.position_direction).apply_trade(trade)
-            self._total_cash += delta_cash
+        self._total_cash += delta_cash
         self._backward_trade_set.add(trade.exec_id)
 
     def _iter_pos(self, direction=None):
@@ -453,8 +450,7 @@ class Account(metaclass=AccountMeta):
         """计算账户管理费用"""
         if self._management_fee_rate == 0:
             return 0
-        fee = self._management_fee_calculator_func(self, self._management_fee_rate)
-        return fee
+        return self._management_fee_calculator_func(self, self._management_fee_rate)
 
     def register_management_fee_calculator(self, calculator):
         # type: (Callable[[Account, float], float]) -> None
@@ -513,8 +509,6 @@ class Account(metaclass=AccountMeta):
                     user_system_log.warn("repay amount is greater than cash liabilities")
                 self._cash_liabilities = max(0, self._cash_liabilities - amount)
                 self._total_cash -= amount + excess
-            else:
-                pass
         else:
             user_system_log.warn(f"{self.type} not support finance_repay")
 

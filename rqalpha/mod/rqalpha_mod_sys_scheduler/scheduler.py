@@ -54,11 +54,14 @@ def physical_time(hour=0, minute=0):
 
 def _verify_function(name, func):
     if not callable(func):
-        raise patch_user_exc(ValueError('scheduler.{}: func should be callable'.format(name)))
+        raise patch_user_exc(ValueError(f'scheduler.{name}: func should be callable'))
     sig = signature(func)
     if len(sig.parameters) != 2:
-        raise patch_user_exc(TypeError(
-            'scheduler.{}: func should take exactly 2 arguments (context, bar_dict)'.format(name)))
+        raise patch_user_exc(
+            TypeError(
+                f'scheduler.{name}: func should take exactly 2 arguments (context, bar_dict)'
+            )
+        )
 
 
 class Scheduler(object):
@@ -155,12 +158,10 @@ class Scheduler(object):
             return False
 
     def _should_trigger(self, n):
-        # 非交易时间段内不触发
-        flag = False
-        for start_minute, end_minute in self._trading_minute_range:
-            if start_minute <= n <= end_minute:
-                flag = True
-
+        flag = any(
+            start_minute <= n <= end_minute
+            for start_minute, end_minute in self._trading_minute_range
+        )
         # 不在交易时段内
         if not flag:
             return False
@@ -187,9 +188,11 @@ class Scheduler(object):
             return lambda: self._is_before_trading()
 
         if time_rule is not None and not isinstance(time_rule, int):
-            raise patch_user_exc(ValueError(
-                'invalid time_rule, "before_trading" or int expected, got {}'.format(repr(time_rule))
-            ))
+            raise patch_user_exc(
+                ValueError(
+                    f'invalid time_rule, "before_trading" or int expected, got {repr(time_rule)}'
+                )
+            )
         # 期货交易的交易时段存在0点
         time_rule = time_rule if time_rule is not None else self._minutes_since_midnight(9, 31)
         return lambda: self._should_trigger(time_rule)
@@ -205,17 +208,17 @@ class Scheduler(object):
         if (weekday is not None and tradingday is not None) or (weekday is None and tradingday is None):
             raise patch_user_exc(ValueError('select one of weekday/tradingday'))
 
-        if weekday is not None:
-            if weekday < 1 or weekday > 7:
-                raise patch_user_exc(ValueError('invalid weekday, should be in [1, 7]'))
-            day_checker = lambda: self._is_weekday(weekday - 1)
-        else:
+        if weekday is None:
             if tradingday > 5 or tradingday < -5 or tradingday == 0:
                 raise patch_user_exc(ValueError('invalid trading day, should be in [-5, 0), (0, 5]'))
             if tradingday > 0:
                 tradingday -= 1
             day_checker = lambda: self._is_nth_trading_day_in_week(tradingday)
 
+        elif weekday < 1 or weekday > 7:
+            raise patch_user_exc(ValueError('invalid weekday, should be in [1, 7]'))
+        else:
+            day_checker = lambda: self._is_weekday(weekday - 1)
         time_checker = self._time_rule_for(time_rule)
 
         self._registry.append((day_checker, time_checker, func))
@@ -227,13 +230,15 @@ class Scheduler(object):
             tradingday = kwargs.pop('monthday')
 
         if kwargs:
-            raise patch_user_exc(ValueError('unknown argument: {}'.format(kwargs)))
+            raise patch_user_exc(ValueError(f'unknown argument: {kwargs}'))
 
         if tradingday is None:
             raise patch_user_exc(ValueError('tradingday is required'))
 
         if not isinstance(tradingday, int):
-            raise patch_user_exc(ValueError('tradingday: <int> excpected, {} got'.format(repr(tradingday))))
+            raise patch_user_exc(
+                ValueError(f'tradingday: <int> excpected, {repr(tradingday)} got')
+            )
 
         if tradingday > 23 or tradingday < -23 or tradingday == 0:
             raise patch_user_exc(ValueError('invalid tradingday, should be in [-23, 0), (0, 23]'))

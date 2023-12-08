@@ -62,7 +62,7 @@ def to_date(date):
     if isinstance(date, str):
         return parse(date).date()
 
-    raise RQInvalidArgument('unknown date value: {}'.format(date))
+    raise RQInvalidArgument(f'unknown date value: {date}')
 
 
 @export_as_api
@@ -297,7 +297,9 @@ def get_margin_stocks(exchange=None, margin_type="all"):
     elif margin_type in ["cash", "stock"]:
         symbols.extend(rqdatac.get_margin_stocks(trade_dt, exchange, margin_type=margin_type, market="cn"))
     else:
-        raise ValueError("MarginComponentValidator margin_type value error, got {}".format(margin_type))
+        raise ValueError(
+            f"MarginComponentValidator margin_type value error, got {margin_type}"
+        )
 
     return list(set(symbols))
 
@@ -869,9 +871,8 @@ def get_dominant_future(underlying_symbol, rule=0):
     ret = rqdatac.get_dominant_future(underlying_symbol, dt, dt, rule)
     if isinstance(ret, pd.Series) and ret.size == 1:
         return ret.item()
-    else:
-        user_log.warn(_("\'{0}\' future does not exist").format(underlying_symbol))
-        return None
+    user_log.warn(_("\'{0}\' future does not exist").format(underlying_symbol))
+    return None
 
 
 @export_as_api
@@ -953,10 +954,7 @@ def _futures_get_dominant(underlying_symbol, rule=0):
     """
     dt = Environment.get_instance().trading_dt.date()
     ret = rqdatac.futures.get_dominant(underlying_symbol, dt, dt, rule)
-    if ret is None or ret.empty:
-        return None
-
-    return ret.item()
+    return None if ret is None or ret.empty else ret.item()
 
 
 @apply_rules(verify_that('which').is_instance_of(str),
@@ -1078,13 +1076,13 @@ def _futures_get_dominant_price(
     end_date = env.trading_dt if end_date is None else pd.to_datetime(end_date)
     start_date = end_date - datetime.timedelta(days=3) if start_date is None else pd.to_datetime(start_date)
     if start_date > end_date:
-        raise RQInvalidArgument('in futures.get_dominant_price, start_date {} > end_date {}'.format(
-            start_date.date(), end_date.date()
-        ))
+        raise RQInvalidArgument(
+            f'in futures.get_dominant_price, start_date {start_date.date()} > end_date {end_date.date()}'
+        )
     if end_date > pd.to_datetime(env.trading_dt):
-        raise RQInvalidArgument('in futures.get_dominant_price, end_date {} > trading day {}'.format(
-            end_date.date(), env.trading_dt.date()
-        ))
+        raise RQInvalidArgument(
+            f'in futures.get_dominant_price, end_date {end_date.date()} > trading day {env.trading_dt.date()}'
+        )
 
     check_items_in_container([adjust_type], VALID_ADJUST_TYPES, 'adjust_type')
     check_items_in_container([adjust_method], VALID_ADJUST_METHODS, 'adjust_method')
@@ -1146,7 +1144,7 @@ def get_fundamentals(query, entry_date=None, interval='1d', report_quarter=False
     if entry_date is None and 'date' in kwargs:
         entry_date = kwargs.pop('date')
     if kwargs:
-        raise RQInvalidArgument('unknown arguments: {}'.format(kwargs))
+        raise RQInvalidArgument(f'unknown arguments: {kwargs}')
 
     latest_query_day = dt - datetime.timedelta(days=1)
 
@@ -1205,14 +1203,13 @@ def get_financials(query, quarter=None, interval='4q', expect_df=False):
     if q <= 0:
         y -= 1
         q = 4
-    default_quarter = str(y) + 'q' + str(q)
+    default_quarter = f'{str(y)}q{str(q)}'
     if quarter is None or quarter > default_quarter:
         quarter = default_quarter
 
-    include_date = False
-    for d in query.column_descriptions:
-        if d['name'] == 'announce_date':
-            include_date = True
+    include_date = any(
+        d['name'] == 'announce_date' for d in query.column_descriptions
+    )
     if not include_date:
         query = query.add_column(rqdatac.fundamentals.announce_date)
 
@@ -1271,7 +1268,7 @@ def get_pit_financials(fields, quarter=None, interval=None, order_book_ids=None,
     if q <= 0:
         y -= 1
         q = 4
-    default_quarter = str(y) + 'q' + str(q)
+    default_quarter = f'{str(y)}q{str(q)}'
     if quarter is None or quarter > default_quarter:
         quarter = default_quarter
     result = rqdatac.get_pit_financials(fields, quarter, interval, order_book_ids, if_adjusted,
@@ -1333,7 +1330,7 @@ def get_pit_financials_ex(order_book_ids, fields, count, statements='latest'):
         if q <= 0:
             y -= 1
             q = 4
-        end_quarter = str(y) + 'q' + str(q)
+        end_quarter = f'{str(y)}q{str(q)}'
 
         # 多获取4个季度的财报，以防因为财报未发布导致数量不够
         q_num = y * 4 + q - count - 4
@@ -1367,7 +1364,7 @@ def get_pit_financials_ex(order_book_ids, fields, count, statements='latest'):
         if isinstance(result, pd.DataFrame):
             result_list.append(result.iloc[-count:])
 
-    result = pd.concat(result_list) if len(result_list) > 0 else None
+    result = pd.concat(result_list) if result_list else None
 
     return result
 

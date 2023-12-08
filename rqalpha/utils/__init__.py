@@ -123,8 +123,7 @@ def create_custom_exception(exc_type, exc_val, exc_tb, strategy_filename):
     if filename == strategy_filename:
         error.error_type = EXC_TYPE.USER_EXC
 
-    user_exc = CustomException(error)
-    return user_exc
+    return CustomException(error)
 
 
 def account_type_str2enum(type_str):
@@ -164,10 +163,10 @@ STOCK_TRADING_PERIOD = [
 
 def is_trading(dt, trading_period):
     t = dt.time()
-    for time_range in trading_period:
-        if time_range.start <= t <= time_range.end:
-            return True
-    return False
+    return any(
+        time_range.start <= t <= time_range.end
+        for time_range in trading_period
+    )
 
 
 def unwrapper(func):
@@ -221,7 +220,7 @@ def init_rqdatac_env(uri):
         return
 
     if '@' not in uri:
-        uri = "tcp://{}@{}".format(uri, RQDATAC_DEFAULT_ADDRESS)
+        uri = f"tcp://{uri}@{RQDATAC_DEFAULT_ADDRESS}"
 
     if not re.match(r"\w*://.+:.+@.+:\d+", uri):
         raise ValueError('invalid rqdatac uri. use user:password or tcp://user:password@ip:port')
@@ -246,5 +245,5 @@ def check_items_in_container(items, should_in, name):
     for item in items:
         if item not in should_in:
             raise ValueError(
-                "{}: got invalided value {}, choose any in {}".format(name, item, should_in)
+                f"{name}: got invalided value {item}, choose any in {should_in}"
             )

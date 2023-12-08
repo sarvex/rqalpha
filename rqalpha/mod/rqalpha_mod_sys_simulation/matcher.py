@@ -86,26 +86,27 @@ class DefaultBarMatcher(AbstractMatcher):
     def _get_bar_volume(self, order, open_auction=False):
         if open_auction:
             volume = self._env.data_proxy.get_open_auction_bar(order.order_book_id, self._env.trading_dt).volume
+        elif isinstance(order.style, ALGO_ORDER_STYLES):
+            _, volume = self._env.data_proxy.get_algo_bar(order.order_book_id, order.style, self._env.calendar_dt)
         else:
-            if isinstance(order.style, ALGO_ORDER_STYLES):
-                _, volume = self._env.data_proxy.get_algo_bar(order.order_book_id, order.style, self._env.calendar_dt)
-            else:
-                volume = self._env.get_bar(order.order_book_id).volume
+            volume = self._env.get_bar(order.order_book_id).volume
         return volume
 
     def _get_deal_price(self, order, open_auction=False):
         if open_auction:
             deal_price = self._open_auction_deal_price_decider(order.order_book_id, order.side)
+        elif isinstance(order.style, ALGO_ORDER_STYLES):
+            deal_price, v = self._env.data_proxy.get_algo_bar(order.order_book_id, order.style, self._env.calendar_dt)
         else:
-            if isinstance(order.style, ALGO_ORDER_STYLES):
-                deal_price, v = self._env.data_proxy.get_algo_bar(order.order_book_id, order.style, self._env.calendar_dt)
-            else:
-                deal_price = self._deal_price_decider(order.order_book_id, order.side)
+            deal_price = self._deal_price_decider(order.order_book_id, order.side)
         return deal_price
 
     def match(self, account, order, open_auction):
         # type: (Account, Order, bool) -> None
-        if not (order.position_effect in self.SUPPORT_POSITION_EFFECTS and order.side in self.SUPPORT_SIDES):
+        if (
+            order.position_effect not in self.SUPPORT_POSITION_EFFECTS
+            or order.side not in self.SUPPORT_SIDES
+        ):
             raise NotImplementedError
         order_book_id = order.order_book_id
         instrument = self._env.get_instrument(order_book_id)
@@ -144,20 +145,19 @@ class DefaultBarMatcher(AbstractMatcher):
                     return
                 if order.side == SIDE.SELL and deal_price <= price_board.get_limit_down(order_book_id):
                     return
-        else:
-            if self._price_limit:
-                if order.side == SIDE.BUY and deal_price >= price_board.get_limit_up(order_book_id):
-                    reason = _(
-                        "Order Cancelled: current bar [{order_book_id}] reach the limit_up price."
-                    ).format(order_book_id=order.order_book_id)
-                    order.mark_rejected(reason)
-                    return
-                if order.side == SIDE.SELL and deal_price <= price_board.get_limit_down(order_book_id):
-                    reason = _(
-                        "Order Cancelled: current bar [{order_book_id}] reach the limit_down price."
-                    ).format(order_book_id=order.order_book_id)
-                    order.mark_rejected(reason)
-                    return
+        elif self._price_limit:
+            if order.side == SIDE.BUY and deal_price >= price_board.get_limit_up(order_book_id):
+                reason = _(
+                    "Order Cancelled: current bar [{order_book_id}] reach the limit_up price."
+                ).format(order_book_id=order.order_book_id)
+                order.mark_rejected(reason)
+                return
+            if order.side == SIDE.SELL and deal_price <= price_board.get_limit_down(order_book_id):
+                reason = _(
+                    "Order Cancelled: current bar [{order_book_id}] reach the limit_down price."
+                ).format(order_book_id=order.order_book_id)
+                order.mark_rejected(reason)
+                return
 
         if self._inactive_limit:
             bar_volume = self._get_bar_volume(order, open_auction=open_auction)
@@ -285,8 +285,7 @@ class DefaultTickMatcher(AbstractMatcher):
         tick_list = self._env.data_proxy.history_ticks(order_book_id, count, cal_dt)
         start = cal_dt if cal_dt.hour >= 19 else cal_dt - datetime.timedelta(days=1)
         start = start.replace(hour=17, minute=0, second=0, microsecond=0)
-        ticks = [tick for tick in tick_list if start <= tick.datetime <= cal_dt]
-        return ticks
+        return [tick for tick in tick_list if start <= tick.datetime <= cal_dt]
 
     def _get_last_tick(self, order_book_id):
         """ 获取上一个tick """
@@ -308,7 +307,10 @@ class DefaultTickMatcher(AbstractMatcher):
     def match(self, account, order, open_auction):  # type: (Account, Order, bool) -> None
 
         # order 是否合法
-        if not (order.position_effect in self.SUPPORT_POSITION_EFFECTS and order.side in self.SUPPORT_SIDES):
+        if (
+            order.position_effect not in self.SUPPORT_POSITION_EFFECTS
+            or order.side not in self.SUPPORT_SIDES
+        ):
             raise NotImplementedError
 
         # 标的信息
@@ -392,10 +394,7 @@ class DefaultTickMatcher(AbstractMatcher):
 
         # 是否开启成交量限制
         if _volume_limit_flag:
-            # 获取上一个tick
-            _last_tick = self._get_last_tick(order_book_id)
-
-            if _last_tick:
+            if _last_tick := self._get_last_tick(order_book_id):
                 # 当前的时刻的成交量 = 当前tick - 上一个时刻的tick
                 volume = _cur_tick.volume - _last_tick.volume
             else:
@@ -532,7 +531,10 @@ class CounterPartyOfferMatcher(DefaultTickMatcher):
         if matching_price != matching_price:
             return
 
-        if not (order.position_effect in self.SUPPORT_POSITION_EFFECTS and order.side in self.SUPPORT_SIDES):
+        if (
+            order.position_effect not in self.SUPPORT_POSITION_EFFECTS
+            or order.side not in self.SUPPORT_SIDES
+        ):
             raise NotImplementedError
         if order.type == ORDER_TYPE.LIMIT:
             if order.side == SIDE.BUY and order.price < matching_price:
@@ -623,10 +625,9 @@ class CounterPartyOfferMatcher(DefaultTickMatcher):
                 if self._a_volume[order.order_book_id][0] == 0:
                     self._a_volume[order.order_book_id].pop(0)
                     self._a_price[order.order_book_id].pop(0)
-            else:
-                if self._b_volume[order.order_book_id][0] == 0:
-                    self._b_volume[order.order_book_id].pop(0)
-                    self._b_price[order.order_book_id].pop(0)
+            elif self._b_volume[order.order_book_id][0] == 0:
+                self._b_volume[order.order_book_id].pop(0)
+                self._b_price[order.order_book_id].pop(0)
         except IndexError:
             return
 

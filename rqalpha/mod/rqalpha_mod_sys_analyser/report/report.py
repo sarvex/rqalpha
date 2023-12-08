@@ -110,7 +110,7 @@ def _monthly_geometric_excess_returns(p_returns: Series, b_returns: Optional[Ser
 
 
 def _gen_positions_weight(df):
-    rename = {"{}%".format(i): "percent_{}".format(i) for i in [25, 50, 75]}
+    rename = {f"{i}%": f"percent_{i}" for i in [25, 50, 75]}
     return df.reset_index().rename(columns=rename).to_dict(orient="list")
 
 
@@ -154,10 +154,18 @@ def generate_report(result_dict, output_path):
             df = df.set_index("date")
 
         if pandas.__version__ >= '1.5.0':
-            df.to_csv("{}/{}.csv".format(output_path, name), encoding='utf-8-sig', lineterminator='\n')
+            df.to_csv(
+                f"{output_path}/{name}.csv",
+                encoding='utf-8-sig',
+                lineterminator='\n',
+            )
         else:
             # pandas 1.5.0 以下是 line_terminator
-            df.to_csv("{}/{}.csv".format(output_path, name), encoding='utf-8-sig', line_terminator='\n')
+            df.to_csv(
+                f"{output_path}/{name}.csv",
+                encoding='utf-8-sig',
+                line_terminator='\n',
+            )
 
 if __name__ == "__main__":
     import pickle

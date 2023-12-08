@@ -13,12 +13,9 @@ class MarginInstrumentValidator(AbstractFrontendValidator):
         return True
 
     def can_submit_order(self, order, account=None):
-        # type: (Order, Optional[Account]) -> bool
-
-        if account.cash_liabilities > 0:
-            user_system_log.warn("Order Creation Failed: cash liabilities > 0, {} not support submit order".format(
-                order.order_book_id)
-            )
-            return False
-        else:
+        if account.cash_liabilities <= 0:
             return True
+        user_system_log.warn(
+            f"Order Creation Failed: cash liabilities > 0, {order.order_book_id} not support submit order"
+        )
+        return False

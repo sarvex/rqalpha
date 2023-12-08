@@ -43,7 +43,9 @@ class TradingDatesMixin(object):
         try:
             return self.trading_calendars[trading_calendar_type]
         except KeyError:
-            raise NotImplementedError("unsupported trading_calendar_type {}".format(trading_calendar_type))
+            raise NotImplementedError(
+                f"unsupported trading_calendar_type {trading_calendar_type}"
+            )
 
     def get_trading_dates(self, start_date, end_date, trading_calendar_type=None):
         # 只需要date部分
@@ -58,10 +60,7 @@ class TradingDatesMixin(object):
     def get_previous_trading_date(self, date, n=1, trading_calendar_type=None) -> pd.Timestamp:
         trading_dates = self.get_trading_calendar(trading_calendar_type)
         pos = trading_dates.searchsorted(_to_timestamp(date))
-        if pos >= n:
-            return trading_dates[pos - n]
-        else:
-            return trading_dates[0]
+        return trading_dates[pos - n] if pos >= n else trading_dates[0]
 
     @lru_cache(64)
     def get_next_trading_date(self, date, n=1, trading_calendar_type=None):
@@ -88,10 +87,7 @@ class TradingDatesMixin(object):
     def get_n_trading_dates_until(self, dt, n, trading_calendar_type=None):
         trading_dates = self.get_trading_calendar(trading_calendar_type)
         pos = trading_dates.searchsorted(_to_timestamp(dt), side='right')
-        if pos >= n:
-            return trading_dates[pos - n:pos]
-
-        return trading_dates[:pos]
+        return trading_dates[pos - n:pos] if pos >= n else trading_dates[:pos]
 
     def count_trading_dates(self, start_date, end_date, trading_calendar_type=None):
         start_date = _to_timestamp(start_date)
@@ -109,8 +105,5 @@ class TradingDatesMixin(object):
         trading_dates = self.get_trading_calendar(TRADING_CALENDAR_TYPE.EXCHANGE)
         pos = trading_dates.searchsorted(td)
         if trading_dates[pos] != td:
-            raise RuntimeError('invalid future calendar datetime: {}'.format(dt))
-        if dt1.hour >= 16:
-            return trading_dates[pos + 1]
-
-        return td
+            raise RuntimeError(f'invalid future calendar datetime: {dt}')
+        return trading_dates[pos + 1] if dt1.hour >= 16 else td

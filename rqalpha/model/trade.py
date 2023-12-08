@@ -104,7 +104,9 @@ class Trade(object):
         try:
             return self.__dict__["_kwargs"][item]
         except KeyError:
-            raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, item))
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{item}'"
+            )
 
     def __simple_object__(self):
         return properties(self)

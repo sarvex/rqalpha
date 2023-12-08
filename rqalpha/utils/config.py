@@ -193,7 +193,11 @@ def parse_future_info(future_info):
         try:
             underlying_symbol = underlying_symbol.upper()
         except AttributeError:
-            raise RuntimeError(_("Invalid future info: underlying_symbol {} is illegal.".format(underlying_symbol)))
+            raise RuntimeError(
+                _(
+                    f"Invalid future info: underlying_symbol {underlying_symbol} is illegal."
+                )
+            )
 
         for field, value in info.items():
             if field in (
@@ -212,14 +216,14 @@ def parse_future_info(future_info):
                         "Invalid future info: commission_type is suppose to be BY_MONEY or BY_VOLUME"
                     ))
             else:
-                raise RuntimeError(_("Invalid future info: field {} is not valid".format(field)))
+                raise RuntimeError(_(f"Invalid future info: field {field} is not valid"))
     return new_info
 
 
 def parse_accounts(accounts):
     a = {}
     if isinstance(accounts, tuple):
-        accounts = {account_type: starting_cash for account_type, starting_cash in accounts}
+        accounts = dict(accounts)
 
     for account_type, starting_cash in accounts.items():
         if starting_cash is None:

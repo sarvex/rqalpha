@@ -39,16 +39,13 @@ def inject_mod_commands():
     mod_config = get_mod_conf()
 
     for mod_name, config in mod_config['mod'].items():
-        if 'lib' in config:
-            lib_name = config["lib"]
-        else:
-            lib_name = "rqalpha_mod_{}".format(mod_name)
+        lib_name = config["lib"] if 'lib' in config else f"rqalpha_mod_{mod_name}"
         if not config['enabled']:
             continue
         try:
             if mod_name in SYSTEM_MOD_LIST:
                 # inject system mod
-                import_mod("rqalpha.mod." + lib_name)
+                import_mod(f"rqalpha.mod.{lib_name}")
             else:
                 # inject third part mod
                 import_mod(lib_name)

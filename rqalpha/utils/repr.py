@@ -43,18 +43,17 @@ class PropertyReprMeta(abc.ABCMeta):
 
 def property_repr(inst):
     # return pformat(properties(inst))
-    return "%s(%s)" % (inst.__class__.__name__, properties(inst))
+    return f"{inst.__class__.__name__}({properties(inst)})"
 
 
 def slots_repr(inst):
     # return pformat(slots(inst))
-    return "%s(%s)" % (inst.__class__.__name__, slots(inst))
+    return f"{inst.__class__.__name__}({slots(inst)})"
 
 
 def dict_repr(inst):
     # return pformat(inst.__dict__)
-    return "%s(%s)" % (
-        inst.__class__.__name__, {k: v for k, v in inst.__dict__.items() if k[0] != "_"})
+    return f'{inst.__class__.__name__}({{k: v for k, v in inst.__dict__.items() if k[0] != "_"}})'
 
 
 def properties(inst):
@@ -82,10 +81,7 @@ def properties(inst):
 
 
 def slots(inst):
-    result = {}
-    for slot in inst.__slots__:
-        result[slot] = getattr(inst, slot)
-    return result
+    return {slot: getattr(inst, slot) for slot in inst.__slots__}
 
 
 def iter_properties_of_class(cls):

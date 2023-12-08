@@ -87,9 +87,7 @@ def init_persist_helper(env, ucontext, executor, config):
     ], ((key, obj) for key, obj in [
         ('event_source', env.event_source),
         ('broker', env.broker)
-    ] if isinstance(obj, Persistable)), ((
-        "mod_{}".format(name), mod
-    ) for name, mod in env.mod_dict.items() if isinstance(mod, Persistable))):
+    ] if isinstance(obj, Persistable)), ((f"mod_{name}", mod) for name, mod in env.mod_dict.items() if isinstance(mod, Persistable))):
         persist_helper.register(key, obj)
     env.set_persist_helper(persist_helper)
     return persist_helper
@@ -205,8 +203,8 @@ def run(config, source_code=None, user_funcs=None):
             restored_obj_state = persist_helper.restore(None)
             check_key = ["global_vars", "user_context", "executor", "universe"]
             kept_current_init_data = not any(v for k, v in restored_obj_state.items() if k in check_key)
-            system_log.debug("restored_obj_state: {}".format(restored_obj_state))
-            system_log.debug("kept_current_init_data: {}".format(kept_current_init_data))
+            system_log.debug(f"restored_obj_state: {restored_obj_state}")
+            system_log.debug(f"kept_current_init_data: {kept_current_init_data}")
             if kept_current_init_data:
                 # 未能恢复init相关数据 保留当前策略初始化变量(展示当前策略初始化日志)
                 log_capture.replay()

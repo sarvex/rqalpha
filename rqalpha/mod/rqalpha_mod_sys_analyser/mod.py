@@ -130,7 +130,7 @@ class AnalyserMod(AbstractMod):
             else:
                 daily_return_list.append((bar.close / bar.prev_close - 1.0, benchmark[1]))
             weights += benchmark[1]
-        return sum([daily[0] * daily[1] / weights for daily in daily_return_list])
+        return sum(daily[0] * daily[1] / weights for daily in daily_return_list)
 
     def _subscribe_events(self, event):
         if self._benchmark:
@@ -192,8 +192,10 @@ class AnalyserMod(AbstractMod):
         result = []
         if not isinstance(benchmarks, str):
             # 字典
-            for order_book_id, weight in benchmarks.items():
-                result.append((order_book_id, float(weight)))
+            result.extend(
+                (order_book_id, float(weight))
+                for order_book_id, weight in benchmarks.items()
+            )
             return result
         benchmark_list = benchmarks.split(',')
         if len(benchmark_list) == 1:
@@ -268,8 +270,7 @@ class AnalyserMod(AbstractMod):
             for field in ['quantity', 'last_price', 'avg_price', 'market_value']:
                 data[field] = self._safe_convert(getattr(long, field, None))
         else:
-            position = long or short
-            if position:
+            if position := long or short:
                 for field in ['margin', 'contract_multiplier', 'last_price']:
                     data[field] = self._safe_convert(getattr(position, field))
             direction_pos_iter = ((pos.direction, pos) for pos in (long, short) if pos)

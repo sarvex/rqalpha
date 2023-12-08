@@ -153,7 +153,7 @@ def download(out, total_length, url):
     with click.progressbar(length=total_length, label=_(u"downloading ...")) as bar:
         for i in range(retry_times):
             try:
-                headers = {'Range': "bytes={}-".format(bar.pos)}
+                headers = {'Range': f"bytes={bar.pos}-"}
                 r = requests.get(url, headers=headers, stream=True, timeout=10, proxies={'http': proxy_uri,
                                                                                          'https': proxy_uri})
                 for data in r.iter_content(chunk_size=8192):
@@ -163,18 +163,17 @@ def download(out, total_length, url):
                 if total_length == bar.pos:
                     return True  # Download complete . exit
             except requests.exceptions.RequestException:
-                if i < retry_times - 1:
-                    six.print_(_("\nDownload failed, retry in {} seconds.".format(retry_interval)))
-                    time.sleep(retry_interval)
-                else:
+                if i >= retry_times - 1:
                     raise
+                six.print_(_(f"\nDownload failed, retry in {retry_interval} seconds."))
+                time.sleep(retry_interval)
 
 
 def check_bundle_data(data_bundle_path):
     instruments = ["stocks", "indexes", "futures", "funds"]
     corrupt_files, not_exists_instruments = [], []
     for instrument in instruments:
-        file = os.path.join(data_bundle_path, "{}.h5".format(instrument))
+        file = os.path.join(data_bundle_path, f"{instrument}.h5")
         if not os.path.exists(file):
             not_exists_instruments.append(instrument)
             continue
@@ -185,8 +184,8 @@ def check_bundle_data(data_bundle_path):
         except Exception:
             corrupt_files.append(file)
     if len(corrupt_files):
-        click.echo("{}:\n{}".format(_("corrupted files"), corrupt_files))
-        is_ok = input("{}(yes/no):".format(_("remove files"))).lower()
+        click.echo(f'{_("corrupted files")}:\n{corrupt_files}')
+        is_ok = input(f'{_("remove files")}(yes/no):').lower()
         if is_ok in ["yes", "y"]:
             [os.remove(file) for file in corrupt_files]
             click.echo(_("remove success"))

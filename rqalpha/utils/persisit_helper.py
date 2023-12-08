@@ -50,7 +50,7 @@ class PersistHelper(object):
 
     def register(self, key, obj):
         if key in self._objects:
-            raise RuntimeError('duplicated persist key found: {}'.format(key))
+            raise RuntimeError(f'duplicated persist key found: {key}')
         self._objects[key] = obj
 
     def unregister(self, key):
@@ -60,12 +60,10 @@ class PersistHelper(object):
         return False
 
     def restore(self, event):
-        key = getattr(event, "key", None)
-        if key:
+        if key := getattr(event, "key", None):
             return self._restore_obj(key, self._objects[key])
 
-        ret = {key: self._restore_obj(key, obj) for key, obj in self._objects.items()}
-        return ret
+        return {key: self._restore_obj(key, obj) for key, obj in self._objects.items()}
 
     def _restore_obj(self, key, obj):
         state = self._persist_provider.load(key)
@@ -75,5 +73,5 @@ class PersistHelper(object):
         try:
             obj.set_state(state)
         except Exception:
-            system_log.exception('restore failed: key={} state={}'.format(key, state))
+            system_log.exception(f'restore failed: key={key} state={state}')
         return True

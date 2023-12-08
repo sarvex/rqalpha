@@ -24,8 +24,7 @@ def convert_dict_to_json(dict_obj):
 
 
 def convert_json_to_dict(json_str):
-    dict_obj = json.loads(json_str, object_hook=custom_decode)
-    return dict_obj
+    return json.loads(json_str, object_hook=custom_decode)
 
 
 def custom_encode(obj):
@@ -36,9 +35,7 @@ def custom_encode(obj):
     elif isinstance(obj, const.CustomEnum):
         obj = {"__enum__": True, "as_str": str(obj)}
     else:
-        raise TypeError(
-            "Unserializable object {} of type {}".format(obj, type(obj))
-        )
+        raise TypeError(f"Unserializable object {obj} of type {type(obj)}")
     return obj
 
 

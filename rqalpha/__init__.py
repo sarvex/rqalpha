@@ -216,6 +216,6 @@ del get_versions
 
 version_info = tuple(int(v) if v.isdigit() else v for v in __version__.split('.'))
 try:
-    __main_version__ = "%s.%s.x" % (version_info[0], version_info[1])
+    __main_version__ = f"{version_info[0]}.{version_info[1]}.x"
 except:
     __main_version__ = "0.0"

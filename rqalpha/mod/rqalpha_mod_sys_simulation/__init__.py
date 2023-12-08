@@ -59,53 +59,66 @@ def load_mod():
 注入 --commission-multiplier options: 实现设置手续费乘数
 注入 --matching-type: 实现选择回测引擎
 """
+
 cli_prefix = "mod__sys_simulation__"
 
 cli.commands['run'].params.append(
     click.Option(
-        ('--signal', cli_prefix + "signal"),
-        is_flag=True, default=None,
+        ('--signal', f"{cli_prefix}signal"),
+        is_flag=True,
+        default=None,
         help="[sys_simulation] exclude match engine",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-sp', '--slippage', cli_prefix + "slippage"),
+        ('-sp', '--slippage', f"{cli_prefix}slippage"),
         type=click.FLOAT,
-        help="[sys_simulation] set slippage"
+        help="[sys_simulation] set slippage",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('--slippage-model', cli_prefix + "slippage_model"),
+        ('--slippage-model', f"{cli_prefix}slippage_model"),
         type=click.STRING,
-        help="[sys_simulation] set slippage model"
+        help="[sys_simulation] set slippage model",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-mt', '--matching-type', cli_prefix + "matching_type"),
+        ('-mt', '--matching-type', f"{cli_prefix}matching_type"),
         type=click.Choice(
-            ['current_bar', 'next_bar', 'last', 'best_own', 'best_counterparty', 'vwap', 'counterparty_offer']),
-        help="[sys_simulation] set matching type"
+            [
+                'current_bar',
+                'next_bar',
+                'last',
+                'best_own',
+                'best_counterparty',
+                'vwap',
+                'counterparty_offer',
+            ]
+        ),
+        help="[sys_simulation] set matching type",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('--inactive-limit', cli_prefix + "inactive_limit"),
+        ('--inactive-limit', f"{cli_prefix}inactive_limit"),
         type=click.BOOL,
-        help="[sys_simulation] Limit transaction when volume is 0"
+        help="[sys_simulation] Limit transaction when volume is 0",
     )
 )
 
 cli.commands["run"].params.append(
     click.Option(
-        ('--management-fee', cli_prefix + "management_fee",),
-        type=click.STRING, nargs=2, multiple=True,
-        help="[sys_simulation] Account management rate. eg '--management-fee stock 0.0002' "
+        ('--management-fee', f"{cli_prefix}management_fee"),
+        type=click.STRING,
+        nargs=2,
+        multiple=True,
+        help="[sys_simulation] Account management rate. eg '--management-fee stock 0.0002' ",
     )
 )

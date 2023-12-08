@@ -34,26 +34,25 @@ class Localization(object):
 
     @staticmethod
     def get_sys_lc():
-        # https://stackoverflow.com/questions/3425294/how-to-detect-the-os-default-language-in-python
-        if os.name == "nt":
-            lc = locale.windows_locale[ctypes.windll.kernel32.GetUserDefaultUILanguage()]
-        else:
-            # 修改虚拟环境的本地语言读取
-            lc = os.getenv("LANG") or os.getenv("LC_CTYPE")
-        return lc
+        return (
+            locale.windows_locale[
+                ctypes.windll.kernel32.GetUserDefaultUILanguage()
+            ]
+            if os.name == "nt"
+            else os.getenv("LANG") or os.getenv("LC_CTYPE")
+        )
 
     @classmethod
     def get_trans(cls, lc: Optional[str], trans_dir=None):
-        if lc is not None and "cn" in lc.lower():
-            locales = ["zh_Hans_CN"]
-            try:
-                if trans_dir is None:
-                    trans_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "translations")
-                return translation(domain="messages", localedir=trans_dir, languages=locales,)
-            except Exception as e:
-                system_log.debug(e)
-                return NullTranslations()
-        else:
+        if lc is None or "cn" not in lc.lower():
+            return NullTranslations()
+        locales = ["zh_Hans_CN"]
+        try:
+            if trans_dir is None:
+                trans_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "translations")
+            return translation(domain="messages", localedir=trans_dir, languages=locales,)
+        except Exception as e:
+            system_log.debug(e)
             return NullTranslations()
 
 

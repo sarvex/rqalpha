@@ -47,30 +47,29 @@ def decorate_api_exc(func):
 
 
 def api_exc_patch(func):
-    if isinstance(func, FunctionType):
+    if not isinstance(func, FunctionType):
+        return func
+    @wraps(func)
+    def deco(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except RQInvalidArgument:
+            raise
+        except Exception as e:
+            if isinstance(e, TypeError):
+                exc_info = sys.exc_info()
+                try:
+                    ret = inspect.getcallargs(unwrapper(func), *args, **kwargs)
+                except TypeError:
+                    t, v, tb = exc_info
+                    raise patch_user_exc(v.with_traceback(tb))
 
-        @wraps(func)
-        def deco(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except RQInvalidArgument:
-                raise
-            except Exception as e:
-                if isinstance(e, TypeError):
-                    exc_info = sys.exc_info()
-                    try:
-                        ret = inspect.getcallargs(unwrapper(func), *args, **kwargs)
-                    except TypeError:
-                        t, v, tb = exc_info
-                        raise patch_user_exc(v.with_traceback(tb))
+            if getattr(e, EXC_EXT_NAME, EXC_TYPE.NOTSET) == EXC_TYPE.NOTSET:
+                patch_system_exc(e)
 
-                if getattr(e, EXC_EXT_NAME, EXC_TYPE.NOTSET) == EXC_TYPE.NOTSET:
-                    patch_system_exc(e)
+            raise
 
-                raise
-
-        return deco
-    return func
+    return deco
 
 
 def register_api(name, func):

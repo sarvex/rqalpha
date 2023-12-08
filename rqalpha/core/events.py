@@ -22,7 +22,7 @@ class Event(object):
         self.event_type = event_type
 
     def __repr__(self):
-        return ' '.join('{}:{}'.format(k, v) for k, v in self.__dict__.items())
+        return ' '.join(f'{k}:{v}' for k, v in self.__dict__.items())
 
 
 class EventBus(object):
