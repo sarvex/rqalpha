@@ -47,17 +47,18 @@ cli_prefix = "mod__sys_accounts__"
 
 cli.commands['run'].params.append(
     click.Option(
-        ('--stock-t1/--no-stock-t1', cli_prefix + "stock_t1"),
+        ('--stock-t1/--no-stock-t1', f"{cli_prefix}stock_t1"),
         default=None,
-        help="[sys_accounts] enable/disable stock T+1"
+        help="[sys_accounts] enable/disable stock T+1",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('--dividend-reinvestment', cli_prefix + 'dividend_reinvestment'),
-        default=None, is_flag=True,
-        help="[sys_accounts] enable dividend reinvestment"
+        ('--dividend-reinvestment', f'{cli_prefix}dividend_reinvestment'),
+        default=None,
+        is_flag=True,
+        help="[sys_accounts] enable dividend reinvestment",
     )
 )
 
@@ -66,26 +67,33 @@ cli.commands['run'].params.append(
     click.Option(
         (
             '--cash-return-by-stock-delisted/--no-cash-return-by-stock-delisted',
-            cli_prefix + 'cash_return_by_stock_delisted'
+            f'{cli_prefix}cash_return_by_stock_delisted',
         ),
         default=True,
-        help="[sys_accounts] return cash when stock delisted"
+        help="[sys_accounts] return cash when stock delisted",
     )
 )
 
 
 cli.commands['run'].params.append(
     click.Option(
-        ("--no-short-stock/--short-stock", cli_prefix + "validate_stock_position"),
-        is_flag=True, default=True,
-        help="[sys_accounts] enable stock shorting"
+        (
+            "--no-short-stock/--short-stock",
+            f"{cli_prefix}validate_stock_position",
+        ),
+        is_flag=True,
+        default=True,
+        help="[sys_accounts] enable stock shorting",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('--futures-settlement-price-type', cli_prefix + 'futures_settlement_price_type'),
+        (
+            '--futures-settlement-price-type',
+            f'{cli_prefix}futures_settlement_price_type',
+        ),
         default=None,
-        help="[sys_accounts] future settlement price"
+        help="[sys_accounts] future settlement price",
     )
 )

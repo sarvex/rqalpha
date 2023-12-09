@@ -60,7 +60,9 @@ class Instrument(metaclass=PropertyReprMeta):
 
         if 'contract_multiplier' in dic:
             if np.isnan(self.contract_multiplier):
-                raise RuntimeError("Contract multiplier of {} is not supposed to be nan".format(self.order_book_id))
+                raise RuntimeError(
+                    f"Contract multiplier of {self.order_book_id} is not supposed to be nan"
+                )
 
     @property
     def order_book_id(self):
@@ -139,7 +141,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["sector_code"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'sector_code' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'sector_code' "
             )
 
     @property
@@ -151,7 +153,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["sector_code_name"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'sector_code_name' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'sector_code_name' "
             )
 
     @property
@@ -163,7 +165,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["industry_code"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'industry_code' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'industry_code' "
             )
 
     @property
@@ -175,7 +177,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["industry_name"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'industry_name' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'industry_name' "
             )
 
     @property
@@ -187,7 +189,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["concept_names"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'concept_names' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'concept_names' "
             )
 
     @property
@@ -199,7 +201,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["board_type"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'board_type' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'board_type' "
             )
 
     @property
@@ -212,7 +214,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["status"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'status' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'status' "
             )
 
     @property
@@ -225,7 +227,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["special_type"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'special_type' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'special_type' "
             )
 
     @property
@@ -251,7 +253,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["underlying_order_book_id"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'underlying_order_book_id' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'underlying_order_book_id' "
             )
 
     @property
@@ -263,7 +265,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["underlying_symbol"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'underlying_symbol' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'underlying_symbol' "
             )
 
     @property
@@ -276,7 +278,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["maturity_date"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'maturity_date' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'maturity_date' "
             )
 
     @property
@@ -288,7 +290,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["settlement_method"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'settlement_method' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'settlement_method' "
             )
 
     @property
@@ -369,8 +371,12 @@ class Instrument(metaclass=PropertyReprMeta):
             start_h, start_m, end_h, end_m = (int(i) for i in time_range_str.split(":"))
             start, end = datetime.time(start_h, start_m), datetime.time(end_h, end_m)
             if start > end:
-                trading_period.append(TimeRange(start, datetime.time(23, 59)))
-                trading_period.append(TimeRange(datetime.time(0, 0), end))
+                trading_period.extend(
+                    (
+                        TimeRange(start, datetime.time(23, 59)),
+                        TimeRange(datetime.time(0, 0), end),
+                    )
+                )
             else:
                 trading_period.append(TimeRange(start, end))
         return trading_period
@@ -378,10 +384,10 @@ class Instrument(metaclass=PropertyReprMeta):
     def during_continuous_auction(self, time):
         # type: (datetime.time) -> bool
         """ 是否处于连续竞价时间段内 """
-        for time_range in self.trading_hours:
-            if time_range.start <= time <= time_range.end:
-                return True
-        return False
+        return any(
+            time_range.start <= time <= time_range.end
+            for time_range in self.trading_hours
+        )
 
     @property
     def trading_code(self):
@@ -390,7 +396,7 @@ class Instrument(metaclass=PropertyReprMeta):
             return self.__dict__["trading_code"]
         except (KeyError, ValueError):
             raise AttributeError(
-                "Instrument(order_book_id={}) has no attribute 'trading_code' ".format(self.order_book_id)
+                f"Instrument(order_book_id={self.order_book_id}) has no attribute 'trading_code' "
             )
 
     @property
@@ -484,7 +490,7 @@ class SectorCodeItem(object):
         return self.__name
 
     def __repr__(self):
-        return "{}: {}, {}".format(self.__name, self.__en, self.__cn)
+        return f"{self.__name}: {self.__en}, {self.__cn}"
 
 
 class SectorCode(object):

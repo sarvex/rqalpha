@@ -40,13 +40,18 @@ def load_mod():
 注入 --short-stock option
 可以通过 `rqalpha run --short-stock` 来开启允许股票卖空
 """
+
 cli_prefix = "mod__sys_risk__"
 
 
 cli.commands["run"].params.append(
     click.Option(
-        ("--cash-validation/--no-cash-validation", cli_prefix + "validate_cash"),
-        is_flag=True, default=True,
-        help="[sys_risk] enable cash validation"
+        (
+            "--cash-validation/--no-cash-validation",
+            f"{cli_prefix}validate_cash",
+        ),
+        is_flag=True,
+        default=True,
+        help="[sys_risk] enable cash validation",
     )
 )

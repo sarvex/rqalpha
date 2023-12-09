@@ -20,10 +20,8 @@ class SheetSchema:
         self._cell_map: Dict[str, Tuple[int, int, StyleArray]] = {}
         for row, column in product(range(1, template_ws.max_row + 1), range(1, template_ws.max_column + 1)):
             cell = template_ws.cell(row, column)
-            value = cell.value
-            if value:
-                result = re.match(VALUE_NAME_RE, value)
-                if result:
+            if value := cell.value:
+                if result := re.match(VALUE_NAME_RE, value):
                     name = result.groupdict()["name"]
                     self._cell_map[name] = (row, column, cell._style)
 

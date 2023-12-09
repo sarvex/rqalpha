@@ -110,13 +110,17 @@ def _submit_order(id_or_ins, amount, side, position_effect, style):
         raise NotImplementedError()
 
     if len(orders) > 1:
-        user_system_log.warn(_(
-            "Order was separated, original order: {original_order_repr}, new orders: [{new_orders_repr}]").format(
-                original_order_repr="Order(order_book_id={}, quantity={}, side={}, position_effect={})".format(
-                    order_book_id, amount, side, position_effect
-                ), new_orders_repr=", ".join(["Order({}, {}, {}, {})".format(
-                    o.order_book_id, o.quantity, o.side, o.position_effect
-                ) for o in orders])
+        user_system_log.warn(
+            _(
+                "Order was separated, original order: {original_order_repr}, new orders: [{new_orders_repr}]"
+            ).format(
+                original_order_repr=f"Order(order_book_id={order_book_id}, quantity={amount}, side={side}, position_effect={position_effect})",
+                new_orders_repr=", ".join(
+                    [
+                        f"Order({o.order_book_id}, {o.quantity}, {o.side}, {o.position_effect})"
+                        for o in orders
+                    ]
+                ),
             )
         )
 
@@ -127,10 +131,7 @@ def _submit_order(id_or_ins, amount, side, position_effect, style):
             orders.remove(o)
 
     # 向前兼容，如果创建的order_list 只包含一个订单的话，直接返回对应的订单，否则返回列表
-    if len(orders) == 1:
-        return orders[0]
-    else:
-        return orders
+    return orders[0] if len(orders) == 1 else orders
 
 
 def _order(order_book_id, quantity, style, target):

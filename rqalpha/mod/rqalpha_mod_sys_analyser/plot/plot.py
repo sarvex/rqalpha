@@ -194,16 +194,16 @@ def plot_result(
         benchmark_portfolio = result_dict["benchmark_portfolio"]
         plot_template = plot_template_cls(portfolio.unit_net_value, benchmark_portfolio.unit_net_value)
         ex_returns = plot_template.geometric_excess_returns
-        ex_max_dd_ddd = "MaxDD {}\nMaxDDD {}".format(
-            _max_dd(ex_returns + 1, portfolio.index).repr, _max_ddd(ex_returns + 1, portfolio.index).repr
-        )
+        ex_max_dd_ddd = f"MaxDD {_max_dd(ex_returns + 1, portfolio.index).repr}\nMaxDDD {_max_ddd(ex_returns + 1, portfolio.index).repr}"
         indicators = plot_template.INDICATORS + plot_template.EXCESS_INDICATORS
 
         # 在图例中输出基准信息
         _b_str = summary["benchmark_symbol"] if SUPPORT_CHINESE else summary["benchmark"]
         _INFO = LineInfo(
-            LINE_BENCHMARK.label + "({})".format(_b_str), LINE_BENCHMARK.color,
-            LINE_BENCHMARK.alpha, LINE_BENCHMARK.linewidth
+            LINE_BENCHMARK.label + f"({_b_str})",
+            LINE_BENCHMARK.color,
+            LINE_BENCHMARK.alpha,
+            LINE_BENCHMARK.linewidth,
         )
 
         return_lines.extend([
@@ -230,15 +230,26 @@ def plot_result(
         spots_on_returns.append((trading_dates_index(trades, POSITION_EFFECT.CLOSE, portfolio.index), CLOSE_POINT))
         spots_on_returns.append((trading_dates_index(trades, POSITION_EFFECT.OPEN, portfolio.index), OPEN_POINT))
 
-    sub_plots = [IndicatorArea(indicators, ChainMap(summary, {
-        "max_dd_ddd": "MaxDD {}\nMaxDDD {}".format(max_dd.repr, max_ddd.repr),
-        "excess_max_dd_ddd": ex_max_dd_ddd,
-    }), plot_template, strategy_name), ReturnPlot(
-        portfolio.unit_net_value - 1, return_lines, spots_on_returns
-    )]
+    sub_plots = [
+        IndicatorArea(
+            indicators,
+            ChainMap(
+                summary,
+                {
+                    "max_dd_ddd": f"MaxDD {max_dd.repr}\nMaxDDD {max_ddd.repr}",
+                    "excess_max_dd_ddd": ex_max_dd_ddd,
+                },
+            ),
+            plot_template,
+            strategy_name,
+        ),
+        ReturnPlot(
+            portfolio.unit_net_value - 1, return_lines, spots_on_returns
+        ),
+    ]
     if "plots" in result_dict:
         sub_plots.append(UserPlot(result_dict["plots"]))
-    
+
     if strategy_name:
         for p in sub_plots:
             if (isinstance(p, IndicatorArea)): p.height += PLOT_TITLE_HEIGHT
@@ -248,7 +259,7 @@ def plot_result(
     if save:
         file_path = save
         if os.path.isdir(save):
-            file_path = os.path.join(save, "{}.png".format(summary["strategy_name"]))
+            file_path = os.path.join(save, f'{summary["strategy_name"]}.png')
         pyplot.savefig(file_path, bbox_inches='tight')
 
     if show:

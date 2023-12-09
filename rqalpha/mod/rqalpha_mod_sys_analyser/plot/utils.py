@@ -35,7 +35,7 @@ class IndexRange(namedtuple("IndexRange", ("start", "end", "start_date", "end_da
 
     @property
     def repr(self):
-        return "{}~{}, {} days".format(self.start_date, self.end_date, (self.end_date - self.start_date).days)
+        return f"{self.start_date}~{self.end_date}, {(self.end_date - self.start_date).days} days"
 
 
 def max_dd(arr: array, index: DatetimeIndex) -> IndexRange:

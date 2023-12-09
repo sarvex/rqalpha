@@ -58,9 +58,7 @@ class StockPosition(Position):
         """
         应收分红
         """
-        if self._dividend_receivable:
-            return self._dividend_receivable[1]
-        return 0
+        return self._dividend_receivable[1] if self._dividend_receivable else 0
 
     @property
     def equity(self):
@@ -99,7 +97,9 @@ class StockPosition(Position):
         if self._quantity == 0 and not self._dividend_receivable:
             return delta_cash
         if self.direction != POSITION_DIRECTION.LONG:
-            raise RuntimeError("direction of stock position {} is not supposed to be short".format(self._order_book_id))
+            raise RuntimeError(
+                f"direction of stock position {self._order_book_id} is not supposed to be short"
+            )
         data_proxy = self._env.data_proxy
         self._handle_dividend_book_closure(trading_date, data_proxy)
         delta_cash += self._handle_dividend_payable(trading_date)
@@ -121,7 +121,9 @@ class StockPosition(Position):
         if self._quantity == 0:
             return 0
         if self.direction != POSITION_DIRECTION.LONG:
-            raise RuntimeError("direction of stock position {} is not supposed to be short".format(self._order_book_id))
+            raise RuntimeError(
+                f"direction of stock position {self._order_book_id} is not supposed to be short"
+            )
         next_date = self._env.data_proxy.get_next_trading_date(trading_date)
         instrument = self._env.data_proxy.instrument(self._order_book_id)
         delta_cash = 0
@@ -163,7 +165,9 @@ class StockPosition(Position):
             return
         dividend_per_share = sum(dividend['dividend_cash_before_tax'] / dividend['round_lot'])
         if dividend_per_share != dividend_per_share:
-            raise RuntimeError("Dividend per share of {} is not supposed to be nan.".format(self._order_book_id))
+            raise RuntimeError(
+                f"Dividend per share of {self._order_book_id} is not supposed to be nan."
+            )
         self._avg_price -= dividend_per_share
         # 前一天结算发生了除息, 此时 last_price 还是前一个交易日的收盘价，需要改为 除息后收盘价, 否则影响在before_trading中查看盈亏
         self._last_price -= dividend_per_share
@@ -184,18 +188,17 @@ class StockPosition(Position):
         if payable_date != trading_date:
             return 0
         self._dividend_receivable = None
-        if self.dividend_reinvestment:
-            last_price = self.last_price
-            amount = int(Decimal(dividend_value) / Decimal(last_price))
-            round_lot = self._instrument.round_lot
-            amount = int(Decimal(amount) / Decimal(round_lot)) * round_lot
-            if amount > 0:
-                self.apply_trade(Trade.__from_create__(
-                    None, last_price, amount, SIDE.BUY, POSITION_EFFECT.OPEN, self._order_book_id
-                ))
-            return dividend_value - amount * last_price
-        else:
+        if not self.dividend_reinvestment:
             return dividend_value
+        last_price = self.last_price
+        amount = int(Decimal(dividend_value) / Decimal(last_price))
+        round_lot = self._instrument.round_lot
+        amount = int(Decimal(amount) / Decimal(round_lot)) * round_lot
+        if amount > 0:
+            self.apply_trade(Trade.__from_create__(
+                None, last_price, amount, SIDE.BUY, POSITION_EFFECT.OPEN, self._order_book_id
+            ))
+        return dividend_value - amount * last_price
 
     def _handle_split(self, trading_date, data_proxy):
         ratio = data_proxy.get_split_by_ex_date(self._order_book_id, trading_date)

@@ -43,10 +43,12 @@ def run_tests(file_path=None):
         if err is not None:
             error_map[name] = err
     for filename, err in iteritems(error_map):
-        print(u"*" * 20, u"[{}]did not pass!".format(filename), u"*" * 20)
+        print(u"*" * 20, f"[{filename}]did not pass!", u"*" * 20)
         print(err)
     print(u"=" * 40)
-    print("[{}|{}] strategies has been passed!".format(len(tests) - len(error_map), len(tests)))
+    print(
+        f"[{len(tests) - len(error_map)}|{len(tests)}] strategies has been passed!"
+    )
     return len(error_map)
 
 
@@ -147,9 +149,7 @@ def write_csv(path, fields):
             writer.writeheader()
     with open(path) as csv_file:
         reader = csv.DictReader(csv_file)
-        for row in reader:
-            old_test_times.append(row)
-
+        old_test_times.extend(iter(reader))
     if performance_path is not None:
         if (
             0 < len(old_test_times) < 5

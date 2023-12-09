@@ -33,53 +33,73 @@ cli_prefix = "mod__sys_transaction_cost__"
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-cm', '--commission-multiplier', cli_prefix + "commission_multiplier"),
+        (
+            '-cm',
+            '--commission-multiplier',
+            f"{cli_prefix}commission_multiplier",
+        ),
         type=click.FLOAT,
-        help="[sys_transaction_cost][deprecated] set commission multiplier"
+        help="[sys_transaction_cost][deprecated] set commission multiplier",
     )
 )
 
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-scm', '--stock-commission-multiplier', cli_prefix + "stock_commission_multiplier"),
+        (
+            '-scm',
+            '--stock-commission-multiplier',
+            f"{cli_prefix}stock_commission_multiplier",
+        ),
         type=click.FLOAT,
-        help="[sys_transaction_cost] set stock commission multiplier"
+        help="[sys_transaction_cost] set stock commission multiplier",
     )
 )
 
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-fcm', '--futures-commission-multiplier', cli_prefix + "futures_commission_multiplier"),
+        (
+            '-fcm',
+            '--futures-commission-multiplier',
+            f"{cli_prefix}futures_commission_multiplier",
+        ),
         type=click.FLOAT,
-        help="[sys_transaction_cost] set futures commission multiplier"
+        help="[sys_transaction_cost] set futures commission multiplier",
     )
 )
 
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-cnsmc', '--cn-stock-min-commission', cli_prefix + 'cn_stock_min_commission'),
+        (
+            '-cnsmc',
+            '--cn-stock-min-commission',
+            f'{cli_prefix}cn_stock_min_commission',
+        ),
         type=click.FLOAT,
-        help="[sys_transaction_cost] set minimum commission in chinese stock trades."
+        help="[sys_transaction_cost] set minimum commission in chinese stock trades.",
     )
 )
 
 # [deprecated]
 cli.commands['run'].params.append(
     click.Option(
-        ('-smc', '--stock-min-commission', cli_prefix + 'cn_stock_min_commission'),
+        (
+            '-smc',
+            '--stock-min-commission',
+            f'{cli_prefix}cn_stock_min_commission',
+        ),
         type=click.FLOAT,
-        help="[sys_transaction_cost][deprecated] set minimum commission in chinese stock trades."
+        help="[sys_transaction_cost][deprecated] set minimum commission in chinese stock trades.",
     )
 )
 
 cli.commands['run'].params.append(
     click.Option(
-        ('-tm', '--tax-multiplier', cli_prefix + "tax_multiplier"),
+        ('-tm', '--tax-multiplier', f"{cli_prefix}tax_multiplier"),
         type=click.FLOAT,
-        help="[sys_transaction_cost] set tax multiplier"
+        help="[sys_transaction_cost] set tax multiplier",
     )
 )
 

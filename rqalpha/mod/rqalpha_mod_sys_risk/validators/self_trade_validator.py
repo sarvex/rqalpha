@@ -27,7 +27,7 @@ class SelfTradeValidator(AbstractFrontendValidator):
         open_orders = [o for o in self._env.get_open_orders(order.order_book_id) if (
                 o.side != order.side and o.position_effect != POSITION_EFFECT.EXERCISE
         )]
-        if len(open_orders) == 0:
+        if not open_orders:
             return True
         reason = _("Create order failed, there are active orders leading to the risk of self-trade: [{}...]")
         if order.type == ORDER_TYPE.MARKET:

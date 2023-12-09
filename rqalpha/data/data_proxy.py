@@ -100,10 +100,7 @@ class DataProxy(TradingDatesMixin):
         left_pos = dates.searchsorted(dt)
         right_pos = dates.searchsorted(dt, side="right")
 
-        if left_pos >= right_pos:
-            return None
-
-        return table[left_pos: right_pos]
+        return None if left_pos >= right_pos else table[left_pos: right_pos]
 
     def get_split_by_ex_date(self, order_book_id, date):
         df = self.get_split(order_book_id)
@@ -123,9 +120,7 @@ class DataProxy(TradingDatesMixin):
         prev_trading_date = self.get_previous_trading_date(dt)
         bar = self._data_source.history_bars(instrument, 1, '1d', 'close', prev_trading_date,
                                              skip_suspended=False, include_now=False, adjust_orig=dt)
-        if bar is None or len(bar) < 1:
-            return np.nan
-        return bar[0]
+        return np.nan if bar is None or len(bar) < 1 else bar[0]
 
     def get_prev_close(self, order_book_id, dt):
         return self._get_prev_close(order_book_id, dt.replace(hour=0, minute=0, second=0))
@@ -135,15 +130,13 @@ class DataProxy(TradingDatesMixin):
         bar = self._data_source.history_bars(
             instrument, 1, '1d', fields='prev_settlement', dt=dt, skip_suspended=False, adjust_orig=dt
         )
-        if bar is None or len(bar) == 0:
-            return np.nan
-        return bar[0]
+        return np.nan if bar is None or len(bar) == 0 else bar[0]
 
     @lru_cache(10240)
     def _get_settlement(self, instrument, dt):
         bar = self._data_source.history_bars(instrument, 1, '1d', 'settlement', dt, skip_suspended=False)
         if bar is None or len(bar) == 0:
-            raise LookupError("'{}', dt={}".format(instrument.order_book_id, dt))
+            raise LookupError(f"'{instrument.order_book_id}', dt={dt}")
         return bar[0]
 
     def get_prev_settlement(self, order_book_id, dt):
@@ -155,7 +148,9 @@ class DataProxy(TradingDatesMixin):
     def get_settlement(self, instrument, dt):
         # type: (Instrument, datetime) -> float
         if instrument.type != INSTRUMENT_TYPE.FUTURE:
-            raise LookupError("'{}', instrument_type={}".format(instrument.order_book_id, instrument.type))
+            raise LookupError(
+                f"'{instrument.order_book_id}', instrument_type={instrument.type}"
+            )
         return self._get_settlement(instrument, dt)
 
     def get_settle_price(self, order_book_id, date):
@@ -169,8 +164,7 @@ class DataProxy(TradingDatesMixin):
         instrument = self.instruments(order_book_id)
         if dt is None:
             return BarObject(instrument, NANDict, dt)
-        bar = self._data_source.get_bar(instrument, dt, frequency)
-        if bar:
+        if bar := self._data_source.get_bar(instrument, dt, frequency):
             return BarObject(instrument, bar)
         return BarObject(instrument, NANDict, dt)
 
@@ -270,12 +264,11 @@ class DataProxy(TradingDatesMixin):
         return float(self._price_board.get_last_price(order_book_id))
 
     def all_instruments(self, types, dt=None):
-        # type: (List[INSTRUMENT_TYPE], Optional[datetime]) -> List[Instrument]
-        li = []
-        for i in self._data_source.get_instruments(types=types):
-            if dt is None or i.listing_at(dt):
-                li.append(i)
-        return li
+        return [
+            i
+            for i in self._data_source.get_instruments(types=types)
+            if dt is None or i.listing_at(dt)
+        ]
         # return [i for i in self._data_source.get_instruments(types=types) if dt is None or i.listing_at(dt)]
 
     @lru_cache(2048)

@@ -213,10 +213,7 @@ class BaseDataSource(AbstractDataSource):
             return
         dt = np.uint64(convert_date_to_int(dt))
         pos = bars['datetime'].searchsorted(dt)
-        if pos >= len(bars) or bars['datetime'][pos] != dt:
-            return None
-
-        return bars[pos]
+        return None if pos >= len(bars) or bars['datetime'][pos] != dt else bars[pos]
 
     OPEN_AUCTION_BAR_FIELDS = ["datetime", "open", "limit_up", "limit_down", "volume", "total_turnover"]
 
@@ -232,9 +229,7 @@ class BaseDataSource(AbstractDataSource):
 
     def get_settle_price(self, instrument, date):
         bar = self.get_bar(instrument, date, '1d')
-        if bar is None:
-            return np.nan
-        return bar['settlement']
+        return np.nan if bar is None else bar['settlement']
 
     @staticmethod
     def _are_fields_valid(fields, valid_fields):
@@ -242,10 +237,7 @@ class BaseDataSource(AbstractDataSource):
             return True
         if isinstance(fields, six.string_types):
             return fields in valid_fields
-        for field in fields:
-            if field not in valid_fields:
-                return False
-        return True
+        return all(field in valid_fields for field in fields)
 
     def get_ex_cum_factor(self, order_book_id):
         return self._ex_cum_factor.get_factors(order_book_id)
@@ -279,7 +271,7 @@ class BaseDataSource(AbstractDataSource):
                      skip_suspended=True, include_now=False,
                      adjust_type='pre', adjust_orig=None):
 
-        if frequency != '1d' and frequency != '1w':
+        if frequency not in ['1d', '1w']:
             raise NotImplementedError
 
         if skip_suspended and instrument.type == 'CS':
@@ -288,7 +280,7 @@ class BaseDataSource(AbstractDataSource):
             bars = self._all_day_bars_of(instrument)
 
         if not self._are_fields_valid(fields, bars.dtype.names):
-            raise RQInvalidArgument("invalid fields: {}".format(fields))
+            raise RQInvalidArgument(f"invalid fields: {fields}")
 
         if len(bars) <= 0:
             return bars
@@ -350,7 +342,10 @@ class BaseDataSource(AbstractDataSource):
         # FIXME
         from rqalpha.const import DEFAULT_ACCOUNT_TYPE
         accounts = Environment.get_instance().config.base.accounts
-        if not (DEFAULT_ACCOUNT_TYPE.STOCK in accounts or DEFAULT_ACCOUNT_TYPE.FUTURE in accounts):
+        if (
+            DEFAULT_ACCOUNT_TYPE.STOCK not in accounts
+            and DEFAULT_ACCOUNT_TYPE.FUTURE not in accounts
+        ):
             return date.min, date.max
         if frequency in ['tick', '1d']:
             s, e = self._day_bars[INSTRUMENT_TYPE.INDX].get_date_range('000001.XSHG')

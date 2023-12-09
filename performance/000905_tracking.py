@@ -45,7 +45,7 @@ if __name__ == "__main__":
     pr.enable()
     run_func(config=config, handle_bar=handle_bar)
     pr.disable()
-    pr.dump_stats(f"000905_tracking.py.perf")
+    pr.dump_stats("000905_tracking.py.perf")
 
     """
     Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz

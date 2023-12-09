@@ -24,8 +24,8 @@ class CustomEnumMeta(EnumMeta):
         enum_class._member_reverse_map = {v.value: v for v in enum_class.__members__.values()}
         return enum_class
 
-    def __contains__(cls, member):
-        return member in cls.__members__ or member in cls._member_reverse_map
+    def __contains__(self, member):
+        return member in self.__members__ or member in self._member_reverse_map
 
     def __getitem__(self, item):
         try:
@@ -36,8 +36,7 @@ class CustomEnumMeta(EnumMeta):
 
 class CustomEnum(str, Enum, metaclass=CustomEnumMeta):
     def __repr__(self):
-        return "%s.%s" % (
-            self.__class__.__name__, self._name_)
+        return f"{self.__class__.__name__}.{self._name_}"
 
 
 # noinspection PyPep8Naming

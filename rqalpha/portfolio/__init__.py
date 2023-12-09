@@ -57,11 +57,15 @@ class Portfolio(object, metaclass=PropertyReprMeta):
             data_proxy: DataProxy,
             event_bus: EventBus
     ):
-        account_args = {}
-        for account_type, cash in starting_cash.items():
-            account_args[account_type] = {
-                "account_type": account_type, "total_cash": cash, "init_positions": {}, "financing_rate": financing_rate
+        account_args = {
+            account_type: {
+                "account_type": account_type,
+                "total_cash": cash,
+                "init_positions": {},
+                "financing_rate": financing_rate,
             }
+            for account_type, cash in starting_cash.items()
+        }
         last_trading_date = data_proxy.get_previous_trading_date(start_date)
         for order_book_id, quantity in init_positions:
             account_type = self.get_account_type(order_book_id)
@@ -152,9 +156,7 @@ class Portfolio(object, metaclass=PropertyReprMeta):
         """
         [float] 实时净值
         """
-        if self.units == 0:
-            return np.nan
-        return self.total_value / self.units
+        return np.nan if self.units == 0 else self.total_value / self.units
 
     @property
     def static_unit_net_value(self):
@@ -275,11 +277,17 @@ class Portfolio(object, metaclass=PropertyReprMeta):
         # 入金 现金增加，份额增加，总权益增加，单位净值不变
         # 出金 现金减少，份额减少，总权益减少，单位净值不变
         if account_type not in self._accounts:
-            raise ValueError(_("invalid account type {}, choose in {}".format(account_type, list(self._accounts.keys()))))
+            raise ValueError(
+                _(
+                    f"invalid account type {account_type}, choose in {list(self._accounts.keys())}"
+                )
+            )
         unit_net_value = self.unit_net_value
         self._accounts[account_type].deposit_withdraw(amount, receiving_days)
         _units = self.total_value / unit_net_value
-        user_system_log.debug(_("Cash add {}. units {} become to {}".format(amount, self._units, _units)))
+        user_system_log.debug(
+            _(f"Cash add {amount}. units {self._units} become to {_units}")
+        )
         self._units = _units
 
     def finance_repay(self, amount, account_type):
@@ -288,7 +296,11 @@ class Portfolio(object, metaclass=PropertyReprMeta):
             raise ValueError("finance and report api not support LIVE_TRADING")
 
         if account_type not in self._accounts:
-            raise ValueError(_("invalid account type {}, choose in {}".format(account_type, list(self._accounts.keys()))))
+            raise ValueError(
+                _(
+                    f"invalid account type {account_type}, choose in {list(self._accounts.keys())}"
+                )
+            )
         self._accounts[account_type].finance_repay(amount)
 
 

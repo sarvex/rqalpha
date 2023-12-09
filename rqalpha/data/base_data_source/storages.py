@@ -185,7 +185,7 @@ class DayBarStore(AbstractDayBarStore):
 
     def __init__(self, path):
         if not os.path.exists(path):
-            raise FileExistsError("File {} not exist，please update bundle.".format(path))
+            raise FileExistsError(f"File {path} not exist，please update bundle.")
         self._path = path
 
     def get_bars(self, order_book_id):
@@ -244,9 +244,7 @@ class YieldCurveStore:
         df.index = pandas.to_datetime([str(d) for d in df['date']])
         del df['date']
 
-        if tenor is not None:
-            return df[tenor]
-        return df
+        return df[tenor] if tenor is not None else df
 
 
 class SimpleFactorStore(AbstractSimpleFactorStore):

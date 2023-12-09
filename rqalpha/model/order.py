@@ -164,7 +164,9 @@ class Order(object):
         [int] 订单数量
         """
         if np.isnan(self._quantity):
-            raise RuntimeError("Quantity of order {} is not supposed to be nan.".format(self.order_id))
+            raise RuntimeError(
+                f"Quantity of order {self.order_id} is not supposed to be nan."
+            )
         return self._quantity
 
     @property
@@ -219,7 +221,9 @@ class Order(object):
         [int] 订单已成交数量
         """
         if np.isnan(self._filled_quantity):
-            raise RuntimeError("Filled quantity of order {} is not supposed to be nan.".format(self.order_id))
+            raise RuntimeError(
+                f"Filled quantity of order {self.order_id} is not supposed to be nan."
+            )
         return self._filled_quantity
 
     @property
@@ -270,7 +274,9 @@ class Order(object):
         [float] 冻结价格
         """
         if np.isnan(self._frozen_price):
-            raise RuntimeError("Frozen price of order {} is not supposed to be nan.".format(self.order_id))
+            raise RuntimeError(
+                f"Frozen price of order {self.order_id} is not supposed to be nan."
+            )
         return self._frozen_price
 
     @property
@@ -279,7 +285,9 @@ class Order(object):
         [float] 冻结资金
         """
         if np.isnan(self._init_frozen_cash):
-            raise RuntimeError("Frozen cash of order {} is not supposed to be nan.".format(self.order_id))
+            raise RuntimeError(
+                f"Frozen cash of order {self.order_id} is not supposed to be nan."
+            )
         return self._init_frozen_cash
 
     @property
@@ -290,7 +298,9 @@ class Order(object):
         try:
             return self.__dict__["_kwargs"][item]
         except KeyError:
-            raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, item))
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{item}'"
+            )
 
     def is_final(self):
         return self._status not in {
@@ -395,7 +405,7 @@ class LimitOrder(OrderStyle):
                 tick_size_decimal = Decimal("{:.4f}".format(tick_size))
                 self.limit_price = float((limit_price_decimal / tick_size_decimal).to_integral() * tick_size_decimal)
         else:
-            user_system_log.warn('Invalid tick size: {}'.format(tick_size))
+            user_system_log.warn(f'Invalid tick size: {tick_size}')
 
 
 ALGO_ORDER_STYLES = (VWAPOrder, TWAPOrder)

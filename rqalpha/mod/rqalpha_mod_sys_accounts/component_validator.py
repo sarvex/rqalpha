@@ -26,11 +26,9 @@ class MarginComponentValidator(AbstractFrontendValidator):
 
         symbols = self._get_margin_stocks(margin_type=self._margin_type)
 
-        # 是否在股票池中
         if order.order_book_id in set(symbols):
             return True
-        else:
-            user_system_log.warn("Order Creation Failed: margin stock pool not contains {}.".format(
-                order.order_book_id)
-            )
-            return False
+        user_system_log.warn(
+            f"Order Creation Failed: margin stock pool not contains {order.order_book_id}."
+        )
+        return False

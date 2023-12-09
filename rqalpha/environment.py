@@ -122,10 +122,13 @@ class Environment(object):
     def can_cancel_order(self, order):
         instrument_type = self.data_proxy.instrument(order.order_book_id).type
         account = self.portfolio.get_account(order.order_book_id)
-        for v in chain(self._frontend_validators.get(instrument_type, []), self._default_frontend_validators):
-            if not v.can_cancel_order(order, account):
-                return False
-        return True
+        return all(
+            v.can_cancel_order(order, account)
+            for v in chain(
+                self._frontend_validators.get(instrument_type, []),
+                self._default_frontend_validators,
+            )
+        )
 
     def get_universe(self):
         return self._universe.get()
@@ -160,9 +163,11 @@ class Environment(object):
         try:
             return self._transaction_cost_decider_dict[instrument_type]
         except KeyError:
-            raise NotImplementedError(_(u"No such transaction cost decider, order_book_id = {}".format(
-                order_book_id
-            )))
+            raise NotImplementedError(
+                _(
+                    f"No such transaction cost decider, order_book_id = {order_book_id}"
+                )
+            )
 
     def get_trade_tax(self, trade):
         return self._get_transaction_cost_decider(trade.order_book_id).get_trade_tax(trade)
@@ -182,8 +187,8 @@ class Environment(object):
         # forward compatible
         instrument_type = self.data_proxy.instrument(order.order_book_id).type
         account = self.portfolio.get_account(order.order_book_id)
-        for v in self._get_frontend_validators(instrument_type):
-            if not v.can_submit_order(order, account):
-                return False
-        return True
+        return all(
+            v.can_submit_order(order, account)
+            for v in self._get_frontend_validators(instrument_type)
+        )
 

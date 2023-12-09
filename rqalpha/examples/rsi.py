@@ -47,6 +47,6 @@ def handle_bar(context, bar_dict):
 
         # 当RSI小于设置的下限阀值，用剩余cash的一定比例补仓该股
         if rsi_data < context.LOW_RSI:
-            logger.info("target available cash caled: " + str(target_available_cash))
+            logger.info(f"target available cash caled: {str(target_available_cash)}")
             # 如果剩余的现金不够一手 - 100shares，那么会被ricequant 的order management system reject掉
             order_value(stock, target_available_cash)

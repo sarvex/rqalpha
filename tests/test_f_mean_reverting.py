@@ -30,12 +30,6 @@ def init(context):
 def handle_bar(context, bar_dict):
     context.counter += 1
 
-    # if context.counter == 1:
-    #    return
-    # 获取当前一对合约的仓位情况。如尚未有仓位,则对应持仓量都为0
-    position_a = context.portfolio.positions[context.s1]
-    position_b = context.portfolio.positions[context.s2]
-
     # 当累积满一定数量的bar数据时候,进行交易逻辑的判断
     if context.counter > context.window:
 
@@ -54,6 +48,12 @@ def handle_bar(context, bar_dict):
         price_a = bar_dict[context.s1].close
         price_b = bar_dict[context.s2].close
         spread = price_a - context.ratio * price_b
+
+        # if context.counter == 1:
+        #    return
+        # 获取当前一对合约的仓位情况。如尚未有仓位,则对应持仓量都为0
+        position_a = context.portfolio.positions[context.s1]
+        position_b = context.portfolio.positions[context.s2]
 
         # 如果价差低于预先计算得到的下限,则为建仓信号,'买入'价差合约
         if spread <= down_limit and not context.down_cross_down_limit:

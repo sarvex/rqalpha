@@ -48,19 +48,19 @@ class CustomError(object):
             try:
                 var_str = repr(v)
                 if len(var_str) > self.max_exc_var_len:
-                    var_str = var_str[:self.max_exc_var_len] + " ..."
+                    var_str = f"{var_str[:self.max_exc_var_len]} ..."
                 return var_str
             except Exception:
                 return 'UNREPRESENTABLE VALUE'
 
         content = ["Traceback (most recent call last):"]
         for filename, lineno, func_name, code, local_variables in self.stacks:
-            content.append('  File %s, line %s in %s' % (filename, lineno, func_name))
-            content.append('    %s' % (code, ))
+            content.append(f'  File {filename}, line {lineno} in {func_name}')
+            content.append(f'    {code}')
             for k, v in local_variables.items():
-                content.append('    --> %s = %s' % (k, _repr(v)))
+                content.append(f'    --> {k} = {_repr(v)}')
             content.append('')
-        content.append("%s: %s" % (self.exc_type.__name__, self.msg))
+        content.append(f"{self.exc_type.__name__}: {self.msg}")
 
         return "\n".join(content)
 
@@ -88,8 +88,7 @@ def patch_system_exc(exc_val, force=False):
 
 
 def get_exc_from_type(exc_val):
-    exc_from_type = getattr(exc_val, EXC_EXT_NAME, const.EXC_TYPE.NOTSET)
-    return exc_from_type
+    return getattr(exc_val, EXC_EXT_NAME, const.EXC_TYPE.NOTSET)
 
 
 def is_system_exc(exc_val):

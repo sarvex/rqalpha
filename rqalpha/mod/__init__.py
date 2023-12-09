@@ -29,7 +29,7 @@ from rqalpha.utils import RqAttrDict
 class ModHandler(object):
     def __init__(self):
         self._env = None
-        self._mod_list = list()  # type: typing.List[typing.Tuple[str, RqAttrDict]]
+        self._mod_list = []
         self._mod_dict = OrderedDict()  # type: typing.OrderedDict[str, AbstractMod]
 
     def set_env(self, environment):
@@ -47,9 +47,9 @@ class ModHandler(object):
             if hasattr(user_mod_config, 'lib'):
                 lib_name = user_mod_config.lib
             elif mod_name in SYSTEM_MOD_LIST:
-                lib_name = "rqalpha.mod.rqalpha_mod_" + mod_name
+                lib_name = f"rqalpha.mod.rqalpha_mod_{mod_name}"
             else:
-                lib_name = "rqalpha_mod_" + mod_name
+                lib_name = f"rqalpha_mod_{mod_name}"
             system_log.debug(_(u"loading mod {}").format(lib_name))
             mod_module = import_mod(lib_name)
             if mod_module is None:

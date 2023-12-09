@@ -69,9 +69,9 @@ def mod(cmd, params):
                 mod_name = mod_name.replace("rqalpha_mod_", "")
 
             # check whether is installed
-            module_name = "rqalpha_mod_" + mod_name
+            module_name = f"rqalpha_mod_{mod_name}"
             if module_name.startswith("rqalpha_mod_sys_"):
-                module_name = "rqalpha.mod." + module_name
+                module_name = f"rqalpha.mod.{module_name}"
 
             try:
                 import_module(module_name)

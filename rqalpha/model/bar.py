@@ -56,9 +56,7 @@ class PartialBarObject(metaclass=PropertyReprMeta):
         if self._dt is not None:
             return self._dt
         dt = self._data["datetime"]
-        if isinstance(dt, datetime):
-            return dt
-        return convert_int_to_datetime(dt)
+        return dt if isinstance(dt, datetime) else convert_int_to_datetime(dt)
 
     @cached_property
     def instrument(self):
@@ -211,12 +209,11 @@ class BarObject(PartialBarObject):
         except (ValueError, KeyError):
             if self._instrument.type != 'Future' or Environment.get_instance().config.base.run_type != RUN_TYPE.PAPER_TRADING:
                 raise
-            if self._instrument.underlying_symbol in ['IH', 'IC', 'IF']:
-                order_book_id = self.INDEX_MAP[self._instrument.underlying_symbol]
-                bar = Environment.get_instance().data_proxy.get_bar(order_book_id, None, '1m')
-                return self.close - bar.close
-            else:
+            if self._instrument.underlying_symbol not in ['IH', 'IC', 'IF']:
                 return np.nan
+            order_book_id = self.INDEX_MAP[self._instrument.underlying_symbol]
+            bar = Environment.get_instance().data_proxy.get_bar(order_book_id, None, '1m')
+            return self.close - bar.close
 
     @cached_property
     def settlement(self):
@@ -281,11 +278,7 @@ class BarObject(PartialBarObject):
             dt = env.data_proxy.get_previous_trading_date(env.calendar_dt.date())
         bars = env.data_proxy.fast_history(self._instrument.order_book_id, intervals, frequency, ['close', 'volume'], dt)
         sum = bars['volume'].sum()
-        if sum == 0:
-            # 全部停牌
-            return 0
-
-        return np.dot(bars['close'], bars['volume']) / sum
+        return 0 if sum == 0 else np.dot(bars['close'], bars['volume']) / sum
 
     def __repr__(self):
         base = [
@@ -312,11 +305,11 @@ class BarObject(PartialBarObject):
         try:
             value = self._data[item]
         except KeyError:
-            raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, item))
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{item}'"
+            )
         else:
-            if isinstance(value, bytes):
-                return value.decode("utf-8")
-            return value
+            return value.decode("utf-8") if isinstance(value, bytes) else value
 
 
 class BarMap(object):
@@ -334,7 +327,7 @@ class BarMap(object):
         return ((o, self.__getitem__(o)) for o in Environment.get_instance().get_universe())
 
     def keys(self):
-        return (o for o in Environment.get_instance().get_universe())
+        return iter(Environment.get_instance().get_universe())
 
     def values(self):
         return (self.__getitem__(o) for o in Environment.get_instance().get_universe())
@@ -347,11 +340,13 @@ class BarMap(object):
 
     def __getitem__(self, key):
         if not isinstance(key, six.string_types):
-            raise patch_user_exc(ValueError('invalid key {} (use order_book_id please)'.format(key)))
+            raise patch_user_exc(
+                ValueError(f'invalid key {key} (use order_book_id please)')
+            )
 
         instrument = self._data_proxy.instrument(key)
         if instrument is None:
-            raise patch_user_exc(ValueError('invalid order book id or symbol: {}'.format(key)))
+            raise patch_user_exc(ValueError(f'invalid order book id or symbol: {key}'))
         order_book_id = instrument.order_book_id
 
         try:
@@ -372,9 +367,8 @@ class BarMap(object):
                 raise patch_user_exc(KeyError(_(u"id_or_symbols {} does not exist").format(key)))
             if bar is None:
                 return BarObject(instrument, NANDict, self._dt)
-            else:
-                self._cache[order_book_id] = bar
-                return bar
+            self._cache[order_book_id] = bar
+            return bar
 
     @cached_property
     def dt(self):
@@ -383,4 +377,4 @@ class BarMap(object):
     def __repr__(self):
         keys = list(self.keys())
         s = ', '.join(keys[:10]) + (' ...' if len(keys) > 10 else '')
-        return "{}({})".format(type(self).__name__, s)
+        return f"{type(self).__name__}({s})"

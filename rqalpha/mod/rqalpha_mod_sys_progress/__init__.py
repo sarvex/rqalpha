@@ -31,12 +31,13 @@ def load_mod():
 注入 --progress option
 可以通过 `rqalpha run --progress` 的方式支持回测的时候显示进度条
 """
+
 cli_prefix = "mod__sys_progress__"
 cli.commands['run'].params.append(
     click.Option(
-        ("--progress", cli_prefix + "show"),
+        ("--progress", f"{cli_prefix}show"),
         is_flag=True,
-        help="[sys_progress]show progress bar"
+        help="[sys_progress]show progress bar",
     )
 )
 

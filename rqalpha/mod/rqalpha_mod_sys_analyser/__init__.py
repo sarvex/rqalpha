@@ -58,6 +58,7 @@ def load_mod():
 --output-file
 
 """
+
 cli_prefix = "mod__sys_analyser__"
 
 inject_run_param(click.Option(
@@ -80,21 +81,37 @@ inject_run_param(click.Option(
     default=None,
     help=_("[sys_analyser] save plot to file")
 ))
-inject_run_param(click.Option(
-    ("-bm", "--benchmark", cli_prefix + "benchmark"),
-    type=click.STRING,
-    help=_("[sys_analyser] order_book_id of benchmark")
-))
-inject_run_param(click.Option(
-    ('--plot-open-close-points', cli_prefix + "plot_config__open_close_points"),
-    is_flag=True, default=None,
-    help=_("[sys_analyser] show open close points on plot"),
-))
-inject_run_param(click.Option(
-    ("--plot-weekly-indicators", cli_prefix + "plot_config__weekly_indicators"),
-    is_flag=True, default=None,
-    help=_("[sys_analyser] show weekly indicators and return curve on plot")
-))
+inject_run_param(
+    click.Option(
+        ("-bm", "--benchmark", f"{cli_prefix}benchmark"),
+        type=click.STRING,
+        help=_("[sys_analyser] order_book_id of benchmark"),
+    )
+)
+inject_run_param(
+    click.Option(
+        (
+            '--plot-open-close-points',
+            f"{cli_prefix}plot_config__open_close_points",
+        ),
+        is_flag=True,
+        default=None,
+        help=_("[sys_analyser] show open close points on plot"),
+    )
+)
+inject_run_param(
+    click.Option(
+        (
+            "--plot-weekly-indicators",
+            f"{cli_prefix}plot_config__weekly_indicators",
+        ),
+        is_flag=True,
+        default=None,
+        help=_(
+            "[sys_analyser] show weekly indicators and return curve on plot"
+        ),
+    )
+)
 
 
 @cli.command(help=_("[sys_analyser] Plot from strategy output file"))

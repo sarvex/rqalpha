@@ -62,15 +62,14 @@ class Position(AbstractPosition, metaclass=PositionMeta):
     __instrument_types__ = []
 
     def __new__(cls, order_book_id, direction, init_quantity=0, init_price=None):
-        if cls == Position:
-            ins_type = Environment.get_instance().data_proxy.instrument(order_book_id).type
-            try:
-                position_cls = POSITION_TYPE_MAP[ins_type]
-            except KeyError:
-                raise NotImplementedError("")
-            return position_cls.__new__(position_cls, order_book_id, direction, init_quantity, init_price)
-        else:
+        if cls != Position:
             return object.__new__(cls)
+        ins_type = Environment.get_instance().data_proxy.instrument(order_book_id).type
+        try:
+            position_cls = POSITION_TYPE_MAP[ins_type]
+        except KeyError:
+            raise NotImplementedError("")
+        return position_cls.__new__(position_cls, order_book_id, direction, init_quantity, init_price)
 
     def __init__(self, order_book_id, direction, init_quantity=0, init_price=None):
         self._env = Environment.get_instance()
@@ -154,7 +153,9 @@ class Position(AbstractPosition, metaclass=PositionMeta):
         if not is_valid_price(self._prev_close):
             self._prev_close = self._env.data_proxy.get_prev_close(self._order_book_id, self._env.trading_dt)
             if not is_valid_price(self._prev_close):
-                user_system_log.warn("invalid prev close of {}: {}".format(self._order_book_id, self._prev_close))
+                user_system_log.warn(
+                    f"invalid prev close of {self._order_book_id}: {self._prev_close}"
+                )
         return self._prev_close
 
     @property
@@ -163,7 +164,9 @@ class Position(AbstractPosition, metaclass=PositionMeta):
         if not is_valid_price(self._last_price):
             self._last_price = self._env.data_proxy.get_last_price(self._order_book_id)
             if not is_valid_price(self._last_price):
-                user_system_log.warn("invalid last price of {}: {}".format(self._order_book_id, self._last_price))
+                user_system_log.warn(
+                    f"invalid last price of {self._order_book_id}: {self._last_price}"
+                )
         return self._last_price
 
     @property
@@ -240,9 +243,9 @@ class Position(AbstractPosition, metaclass=PositionMeta):
             self._trade_cost -= trade.last_price * trade.last_quantity
             return trade.last_price * trade.last_quantity - trade.transaction_cost
         else:
-            raise NotImplementedError("{} does not support position effect {}".format(
-                self.__class__.__name__, trade.position_effect
-            ))
+            raise NotImplementedError(
+                f"{self.__class__.__name__} does not support position effect {trade.position_effect}"
+            )
 
     def settlement(self, trading_date):
         # type: (date) -> float
@@ -401,10 +404,14 @@ class PositionProxyDict(UserDict):
         return len(self._positions)
 
     def __setitem__(self, key, value):
-        raise TypeError("{} object does not support item assignment".format(self.__class__.__name__))
+        raise TypeError(
+            f"{self.__class__.__name__} object does not support item assignment"
+        )
 
     def __delitem__(self, key):
-        raise TypeError("{} object does not support item deletion".format(self.__class__.__name__))
+        raise TypeError(
+            f"{self.__class__.__name__} object does not support item deletion"
+        )
 
     def __repr__(self):
         return repr({k: self[k] for k in self._positions.keys()})

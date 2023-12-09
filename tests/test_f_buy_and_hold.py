@@ -1,7 +1,7 @@
 def init(context):
     context.s1 = "IF88"
     subscribe(context.s1)
-    logger.info("Interested in: " + str(context.s1))
+    logger.info(f"Interested in: {context.s1}")
 
 
 def handle_bar(context, bar_dict):
